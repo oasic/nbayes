@@ -1,6 +1,16 @@
 = robust_nbayes
 
-Description goes here.
+RobustNBayes is a full-featured, Ruby implementation of Naive Bayes.  Some of the features include:
+
+* allows prior distribution on classes to be assumed uniform (optional)
+* generic to work with all types of tokens, not just text
+* outputs probabilities, instead of just class w/max probability
+* customizable constant value for Laplacian smoothing
+* optional and customizable purging of low-frequency tokens (for performance)
+* optional binarized mode
+* uses log probabilities to avoid underflow
+
+For more information, view this blog post (coming soon)
 
 == Contributing to robust_nbayes
  
@@ -14,6 +24,6 @@ Description goes here.
 
 == Copyright
 
-Copyright (c) 2012 oasic. See LICENSE.txt for
+Copyright (c) 2012 Oasic Technologies LLC. See LICENSE.txt for
 further details.
 
