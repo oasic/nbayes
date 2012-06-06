@@ -12,14 +12,15 @@ require 'yaml'
 
 class RobustNBayes
 
-  attr_accessor :uniform_category_distribution, :binarized, :debug, :k, :vocab, :data, :log_vocab
+  attr_accessor :assume_uniform, :debug, :k, :vocab, :data, :log_vocab
+  attr_reader :binarized
 
-  def initialize
+  def initialize(options={})
     @debug = false
     @k = 1
-    @binarized = false
+    @binarized = options[:binarized] || false
     @log_vocab = false    				# for smoothing, use log of vocab size, rather than vocab size 
-    @uniform_category_distribution = false
+    @assume_uniform = false
     @vocab = Hash.new                   		# used to calculate vocab size (@vocab.keys.length)
     @data = Hash.new
     @data.default_proc = get_default_proc()
@@ -79,7 +80,7 @@ class RobustNBayes
   def train(tokens, category)
     cat_data = @data[category]
     cat_data[:examples]+=1
-    tokens = tokens.uniq  if @binarized
+    tokens = tokens.uniq  if binarized
     tokens.each do |w|
       @vocab[w]=1
       cat_data[:tokens][w]+=1
@@ -90,7 +91,7 @@ class RobustNBayes
   def classify(tokens)
     print "classify: #{tokens.join(', ')}\n" if @debug
     probs = {}
-    tokens = tokens.uniq  if @binarized
+    tokens = tokens.uniq  if binarized
     probs = calculate_probabilities(tokens)
     print "results: #{probs.to_yaml}\n" if @debug
     probs.extend(RobustNBayesResult)
@@ -123,7 +124,7 @@ class RobustNBayes
     @data.keys.each do |category|
       cat_data = @data[category]
       cat_prob = Math.log(cat_data[:examples]/total_examples().to_f)
-      cat_prob = Math.log(1/@data.keys.length.to_f)  if @uniform_category_distribution
+      cat_prob = Math.log(1/@data.keys.length.to_f)  if assume_uniform
       log_probs = 0
       cat_denominator = (cat_data[:total_tokens]+ @k*v_size).to_f
       tokens.each do |token|
