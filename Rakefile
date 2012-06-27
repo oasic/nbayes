@@ -17,8 +17,8 @@ Jeweler::Tasks.new do |gem|
   gem.name = "nbayes"
   gem.homepage = "http://github.com/oasic/nbayes"
   gem.license = "MIT"
-  gem.summary = %Q{TODO: one-line summary of your gem}
-  gem.description = %Q{TODO: longer description of your gem}
+  gem.summary = %Q{Full-featured Ruby implementation of Naive Bayes classifier}
+  gem.description = %Q{Ruby implementation of Naive Bayes that generates true probabilities per class, works with many token types, and provides lots of bells and whistles while being optimized for performance.}
   gem.email = "j@oasic.net"
   gem.authors = ["oasic"]
   # dependencies defined in Gemfile

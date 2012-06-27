@@ -1,7 +1,6 @@
 # rcov generated
 coverage
 coverage.data
-
 # rdoc generated
 rdoc
 
@@ -47,3 +46,7 @@ pkg
 
 # For rubinius:
 #*.rbc
+
+# other
+spec/tmp
+tmp

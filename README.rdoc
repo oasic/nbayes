@@ -1,4 +1,6 @@
-= nbayes
+== nbayes
+
+_gem install nbayes_
 
 NBayes is a full-featured, Ruby implementation of Naive Bayes.  Some of the features include:
 
