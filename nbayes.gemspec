@@ -26,6 +26,7 @@ Gem::Specification.new do |s|
     "Rakefile",
     "VERSION",
     "lib/nbayes.rb",
+    "nbayes.gemspec",
     "spec/nbayes_spec.rb",
     "spec/spec_helper.rb"
   ]

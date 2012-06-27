@@ -12,7 +12,7 @@ NBayes is a full-featured, Ruby implementation of Naive Bayes.  Some of the feat
 * optional binarized mode
 * uses log probabilities to avoid underflow
 
-For more information, view this blog post (coming soon)
+For more information, view this blog post: http://blog.oasic.net/2012/06/naive-bayes-for-ruby.html
 
 == Contributing to nbayes
  
