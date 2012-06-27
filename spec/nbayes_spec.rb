@@ -1,9 +1,9 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 require 'fileutils'
 
-describe "RobustNBayes" do
+describe "NBayes" do
   before do
-    @nbayes = RobustNBayes.new
+    @nbayes = NBayes::Base.new
   end
 
   it "should assign equal probability to each class" do
@@ -97,7 +97,7 @@ describe "RobustNBayes" do
     results.max_class.should == 'classA'
     results['classA'].should > 0.5 
     # this does not happen in binarized mode
-    @nbayes = RobustNBayes.new(:binarized => true)
+    @nbayes = NBayes::Base.new(:binarized => true)
     train_it
     results = @nbayes.classify( ['a'] )
     results.max_class.should == 'classB'
@@ -142,7 +142,7 @@ describe "RobustNBayes" do
       results['classB'].should >= 0.5
       @nbayes.dump(@yml_file)
       File.exists?(@yml_file).should == true
-      @nbayes2 = RobustNBayes.from(@yml_file)
+      @nbayes2 = NBayes::Base.from(@yml_file)
       results = @nbayes.classify( ['b'] )
       results['classB'].should >= 0.5
     end
