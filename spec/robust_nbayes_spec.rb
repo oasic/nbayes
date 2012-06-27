@@ -97,11 +97,31 @@ describe "RobustNBayes" do
     results.max_class.should == 'classA'
     results['classA'].should > 0.5 
     # this does not happen in binarized mode
-    @nbayes = RobustNBayes(:binarized => true)
+    @nbayes = RobustNBayes.new(:binarized => true)
     train_it
     results = @nbayes.classify( ['a'] )
     results.max_class.should == 'classB'
     results['classB'].should > 0.5 
+  end
+
+  it "allows smoothing constant k to be set to any value" do
+    # increasing k increases smoothing
+    @nbayes.train( %w[a a a c], 'classA' ) 
+    @nbayes.train( %w[b b b d], 'classB' ) 
+    @nbayes.k.should == 1
+    results = @nbayes.classify( ['c'] )
+    prob_k1 = results['classA']
+    @nbayes.k = 5 
+    results = @nbayes.classify( ['c'] )
+    prob_k5 = results['classA']
+    prob_k1.should > prob_k5 			# increasing smoothing constant dampens the effect of the rare token 'c'
+  end
+
+  it "optionally allows using the log of vocab size during smoothing" do
+    10_000.times do 
+      @nbayes.train( [rand(100)], 'classA' ) 
+      @nbayes.train( %w[b b b d], 'classB' ) 
+    end
   end
 
   describe "saving" do
@@ -121,7 +141,7 @@ describe "RobustNBayes" do
       results = @nbayes.classify( ['b'] )
       results['classB'].should >= 0.5
       @nbayes.dump(@yml_file)
-      assert File.exists?(@yml_file)
+      File.exists?(@yml_file).should == true
       @nbayes2 = RobustNBayes.from(@yml_file)
       results = @nbayes.classify( ['b'] )
       results['classB'].should >= 0.5

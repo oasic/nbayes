@@ -1,6 +1,6 @@
-= robust_nbayes
+= nbayes
 
-RobustNBayes is a full-featured, Ruby implementation of Naive Bayes.  Some of the features include:
+NBayes is a full-featured, Ruby implementation of Naive Bayes.  Some of the features include:
 
 * allows prior distribution on classes to be assumed uniform (optional)
 * generic to work with all types of tokens, not just text
@@ -12,7 +12,7 @@ RobustNBayes is a full-featured, Ruby implementation of Naive Bayes.  Some of th
 
 For more information, view this blog post (coming soon)
 
-== Contributing to robust_nbayes
+== Contributing to nbayes
  
 * Check out the latest master to make sure the feature hasn't been implemented or the bug hasn't been fixed yet.
 * Check out the issue tracker to make sure someone already hasn't requested it and/or contributed it.
