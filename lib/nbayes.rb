@@ -172,6 +172,11 @@ module NBayes
       nbayes
     end
 
+    # Alias for from for the sake of rails
+    def load(yml)
+      self.from(yml)
+    end
+
     # Dumps class instance
     def dump(yml_file=nil)
       if yml_file.nil?
