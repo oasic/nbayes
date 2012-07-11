@@ -159,38 +159,35 @@ module NBayes
       final_probs
     end
 
-
     # Loads class instance from a data file (e.g., yaml)
-    def self.from(yml)
-      if yml.nil?
-        return nbayes
-      elsif File.exists?(yml)
-        nbayes = YAML.load_file(yml)
-      else
-	# Assume that we were given a yaml string
-        nbayes = YAML.load(yml)
-      end
+    def self.from(yml_file)
+      nbayes = YAML.load_file(yml_file)
       nbayes.reset_after_import()         		# yaml does not properly set the defaults on the Hashes
       nbayes
     end
 
-    # Alias for from for the sake of rails
+    # Load class instance
     def load(yml)
-      self.from(yml)
-    end
-
-    # Dumps class instance
-    def dump(yml_file=nil)
-      if yml_file.nil?
-        YAML.dump(self)
+      if yml.nil?
+	return NBayes::Base.new
+      elsif yml[0..2] == "---"
+        nbayes = YAML.load(yml)
       else
-        File.open(yml_file, "w") {|f| YAML.dump(self, f) }
+        nbayes = YAML.load_file(yml_file)
+      end
+      nbayes.reset_after_import()         		# yaml does not properly set the defaults on the Hashes
+      nbayes
+    end
+    
+    # Dumps class instance to a data file (e.g., yaml) or a string
+    def dump(arg)
+      if arg.instance_of? String
+        File.open(arg, "w") {|f| YAML.dump(self, f) }
+      else
+        YAML.dump(arg)
       end
     end
 
-    def inspect(params={})
-	super(params)
-    end
   end
 
 
