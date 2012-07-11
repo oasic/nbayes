@@ -162,7 +162,9 @@ module NBayes
 
     # Loads class instance from a data file (e.g., yaml)
     def self.from(yml)
-      if File.exists?(yml)
+      if yml.nil?
+        return nbayes
+      elsif File.exists?(yml)
         nbayes = YAML.load_file(yml)
       else
 	# Assume that we were given a yaml string
