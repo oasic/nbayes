@@ -161,17 +161,25 @@ module NBayes
 
 
     # Loads class instance from a data file (e.g., yaml)
-    def self.from(yml_file)
-      nbayes = YAML.load_file(yml_file)
+    def self.from(yml)
+      if File.exists?(yml)
+        nbayes = YAML.load_file(yml)
+      else
+	# Assume that we were given a yaml string
+        nbayes = YAML.load(yml)
+      end
       nbayes.reset_after_import()         		# yaml does not properly set the defaults on the Hashes
       nbayes
     end
 
-    # Dumps class instance to a file
-    def dump(yml_file)
-      File.open(yml_file, "w") {|f| YAML.dump(self, f) }
+    # Dumps class instance
+    def dump(yml_file=nil)
+      if yml_file.nil?
+        YAML.dump(self)
+      else
+        File.open(yml_file, "w") {|f| YAML.dump(self, f) }
+      end
     end
-
   end
 
 
