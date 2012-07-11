@@ -167,7 +167,7 @@ module NBayes
     end
 
     # Load class instance
-    def load(yml)
+    def self.load(yml)
       if yml.nil?
 	return NBayes::Base.new
       elsif yml[0..2] == "---"

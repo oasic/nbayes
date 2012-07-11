@@ -148,4 +148,14 @@ describe "NBayes" do
     end
   end
 
+  it "should dump to yaml string and load from yaml string" do
+    @nbayes.train( %w[a a a a], 'classA' ) 
+    @nbayes.train( %w[b b b b], 'classB' ) 
+    results = @nbayes.classify( ['b'] )
+    results['classB'].should >= 0.5
+    yml = @nbayes.dump(@nbayes)
+    @nbayes2 = NBayes::Base.load(yml)
+    results = @nbayes.classify( ['b'] )
+    results['classB'].should >= 0.5
+  end
 end
