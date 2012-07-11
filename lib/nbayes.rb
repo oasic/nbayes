@@ -159,7 +159,6 @@ module NBayes
       final_probs
     end
 
-
     # Loads class instance from a data file (e.g., yaml)
     def self.from(yml_file)
       nbayes = YAML.load_file(yml_file)
@@ -167,9 +166,26 @@ module NBayes
       nbayes
     end
 
-    # Dumps class instance to a file
-    def dump(yml_file)
-      File.open(yml_file, "w") {|f| YAML.dump(self, f) }
+    # Load class instance
+    def load(yml)
+      if yml.nil?
+	return NBayes::Base.new
+      elsif yml[0..2] == "---"
+        nbayes = YAML.load(yml)
+      else
+        nbayes = YAML.load_file(yml_file)
+      end
+      nbayes.reset_after_import()         		# yaml does not properly set the defaults on the Hashes
+      nbayes
+    end
+    
+    # Dumps class instance to a data file (e.g., yaml) or a string
+    def dump(arg)
+      if arg.instance_of? String
+        File.open(arg, "w") {|f| YAML.dump(self, f) }
+      else
+        YAML.dump(arg)
+      end
     end
 
   end
