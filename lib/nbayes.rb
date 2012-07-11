@@ -187,6 +187,10 @@ module NBayes
         File.open(yml_file, "w") {|f| YAML.dump(self, f) }
       end
     end
+
+    def inspect(params={})
+	super(params)
+    end
   end
 
 
