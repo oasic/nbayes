@@ -154,7 +154,7 @@ describe "NBayes" do
     results = @nbayes.classify( ['b'] )
     results['classB'].should >= 0.5
     yml = @nbayes.dump(@nbayes)
-    @nbayes2 = NBayes::Base.load(yml)
+    @nbayes2 = NBayes::Base.new.load(yml)
     results = @nbayes.classify( ['b'] )
     results['classB'].should >= 0.5
   end
