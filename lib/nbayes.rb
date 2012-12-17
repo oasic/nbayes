@@ -173,7 +173,7 @@ module NBayes
       elsif yml[0..2] == "---"
         nbayes = YAML.load(yml)
       else
-        nbayes = YAML.load_file(yml_file)
+        nbayes = YAML.load_file(yml)
       end
       nbayes.reset_after_import()         		# yaml does not properly set the defaults on the Hashes
       nbayes

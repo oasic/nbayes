@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "nbayes"
-  s.version = "0.1.0"
+  s.version = "0.1.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["oasic"]
-  s.date = "2012-06-27"
+  s.date = "2012-07-13"
   s.description = "Ruby implementation of Naive Bayes that generates true probabilities per class, works with many token types, and provides lots of bells and whistles while being optimized for performance."
   s.email = "j@oasic.net"
   s.extra_rdoc_files = [
