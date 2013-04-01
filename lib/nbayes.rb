@@ -1,5 +1,13 @@
 require 'yaml'
 
+unless Hash.new.respond_to?(:default_proc=)
+  class Hash
+    def default_proc=(proc)
+      initialize(&proc)
+    end
+  end
+end
+
 # == NBayes::Base
 #
 # Robust implementation of NaiveBayes:
