@@ -165,6 +165,10 @@ module NBayes
         end
         prob_numerator[category] = log_probs + cat_prob
       end
+      normalize(prob_numerator)
+    end
+
+    def normalize(prob_numerator)
       # calculate the denominator, which normalizes this into a probability; it's just the sum of all numerators from above
       normalizer = 0
       prob_numerator.each {|cat, numerator| normalizer += numerator }
@@ -228,6 +232,7 @@ module NBayes
 
 
   module Result
+    # Return the key having the largest value
     def max_class
       keys.max{ |a,b| self[a] <=> self[b] }
     end
