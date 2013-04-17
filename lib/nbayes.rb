@@ -48,7 +48,7 @@ module NBayes
     # - tokens with a count less than x (measured by summing across all classes) are removed
     # Ex: nb.purge_less_than(2)
     #
-    # NOTE: this does not decrement the "examples" count, so purging is not *always* the same 
+    # NOTE: this does not decrement the "examples" count, so purging is not *always* the same
     # as if the item was never added in the first place, but usually so
     def purge_less_than(x)
       remove_list = {}
@@ -143,16 +143,23 @@ module NBayes
     def calculate_probabilities(tokens)
       # P(class|words) = P(w1,...,wn|class) * P(class) / P(w1,...,wn)
       #                = argmax P(w1,...,wn|class) * P(class)
-      # 
+      #
       # P(wi|class) = (count(wi, class) + k)/(count(w,class) + kV)
       prob_numerator = {}
       v_size = vocab_size
+
+      cat_prob = Math.log(1 / @data.count.to_f)
+      example_count = total_examples.to_f
+
       @data.keys.each do |category|
         cat_data = @data[category]
-        cat_prob = Math.log(cat_data[:examples] / total_examples().to_f)
-        cat_prob = Math.log(1 / @data.keys.length.to_f)  if assume_uniform
+
+        unless assume_uniform
+          cat_prob = Math.log(cat_data[:examples] / example_count)
+        end
+
         log_probs = 0
-        cat_denominator = (cat_data[:total_tokens]+ @k*v_size).to_f
+        cat_denominator = (cat_data[:total_tokens]+ @k * v_size).to_f
         tokens.each do |token|
           log_probs += Math.log( (cat_data[:tokens][token] + @k) / cat_denominator )
         end
@@ -207,7 +214,7 @@ module NBayes
       end
       nbayes
     end
-    
+
     # Dumps class instance to a data file (e.g., yaml) or a string
     def dump(arg)
       if arg.instance_of? String
