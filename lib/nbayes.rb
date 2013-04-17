@@ -20,18 +20,46 @@ end
 
 module NBayes
 
+  class Vocab
+    attr_accessor :log_size, :tokens
+    def initialize(options={})
+      @tokens = Hash.new
+      # for smoothing, use log of vocab size, rather than vocab size
+      @log_size = options[:log_size]
+    end
+
+    def delete(token)
+      tokens.delete(token)
+    end
+
+    def each(&block)
+      tokens.keys.each(&block)
+    end
+
+    def size
+      if log_size
+        Math.log(tokens.count)
+      else
+        tokens.count
+      end
+    end
+
+    def seen_token(token)
+      tokens[token] = 1
+    end
+  end
+
   class Base
 
-    attr_accessor :assume_uniform, :debug, :k, :vocab, :data, :log_vocab
+    attr_accessor :assume_uniform, :debug, :k, :vocab, :data
     attr_reader :binarized
 
     def initialize(options={})
       @debug = false
       @k = 1
       @binarized = options[:binarized] || false
-      @log_vocab = false            # for smoothing, use log of vocab size, rather than vocab size
       @assume_uniform = false
-      @vocab = Hash.new             # used to calculate vocab size (@vocab.keys.length)
+      @vocab = Vocab.new(:log_size => options[:log_vocab])
       @data = Hash.new
       @data.default_proc = get_default_proc()
       #@data = {
@@ -52,7 +80,7 @@ module NBayes
     # as if the item was never added in the first place, but usually so
     def purge_less_than(x)
       remove_list = {}
-      @vocab.keys.each do |token|
+      @vocab.each do |token|
         count = @data.keys.inject(0){|sum, cat| sum + @data[cat][:tokens][token] }
         next if count >= x
         @data.each do |cat, cat_data|
@@ -64,7 +92,7 @@ module NBayes
         remove_list[token]=1
       end  # each vocab word
       remove_list.keys.each {|token| @vocab.delete(token) }
-      # print "total vocab size is now #{vocab_size}\n"
+      # print "total vocab size is now #{vocab.size}\n"
     end
 
     # Returns the default proc used by the data hash
@@ -97,9 +125,9 @@ module NBayes
       cat_data = @data[category]
       cat_data[:examples] += 1
       tokens = tokens.uniq if binarized
-      tokens.each do |w|
-        @vocab[w] = 1
-        cat_data[:tokens][w] += 1
+      tokens.each do |token|
+        vocab.seen_token(token)
+        cat_data[:tokens][token] += 1
         cat_data[:total_tokens] += 1
       end
     end
@@ -107,7 +135,7 @@ module NBayes
     def classify(tokens)
       print "classify: #{tokens.join(', ')}\n" if @debug
       probs = {}
-      tokens = tokens.uniq  if binarized
+      tokens = tokens.uniq if binarized
       probs = calculate_probabilities(tokens)
       print "results: #{probs.to_yaml}\n" if @debug
       probs.extend(NBayes::Result)
@@ -119,13 +147,6 @@ module NBayes
       sum = 0
       @data.each {|cat, cat_data| sum += cat_data[:examples] }
       sum
-    end
-
-    # Returns the size of the "vocab" - the number of unique tokens found in the text
-    # This is used in the Laplacian smoothing.
-    def vocab_size
-      return Math.log(@vocab.keys.length) if @log_vocab
-      @vocab.keys.length
     end
 
     def category_stats
@@ -146,7 +167,7 @@ module NBayes
       #
       # P(wi|class) = (count(wi, class) + k)/(count(w,class) + kV)
       prob_numerator = {}
-      v_size = vocab_size
+      v_size = vocab.size
 
       cat_prob = Math.log(1 / @data.count.to_f)
       example_count = total_examples.to_f
