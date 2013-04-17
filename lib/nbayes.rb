@@ -1,13 +1,5 @@
 require 'yaml'
 
-unless Hash.new.respond_to?(:default_proc=)
-  class Hash
-    def default_proc=(proc)
-      initialize(&proc)
-    end
-  end
-end
-
 # == NBayes::Base
 #
 # Robust implementation of NaiveBayes:
@@ -22,7 +14,8 @@ module NBayes
 
   class Vocab
     attr_accessor :log_size, :tokens
-    def initialize(options={})
+
+    def initialize(options = {})
       @tokens = Hash.new
       # for smoothing, use log of vocab size, rather than vocab size
       @log_size = options[:log_size]
@@ -49,6 +42,113 @@ module NBayes
     end
   end
 
+  class Data
+    attr_accessor :data
+    def initialize(options = {})
+      @data = Hash.new
+      #@data = {
+      #  "category1": {
+      #    "tokens": Hash.new(0),
+      #    "total_tokens": 0,
+      #    "examples": 0
+      #  },
+      # ...
+      #}
+    end
+
+    def categories
+      data.keys
+    end
+
+    def cat_data(category)
+      unless data[category].is_a? Hash
+        data[category] = new_category
+      end
+      data[category]
+    end
+
+    def category_stats
+      tmp = []
+      total_example_count = total_examples
+      self.each do |category|
+        e = example_count(category)
+        t = token_count(category)
+        tmp << "For category #{category}, %d examples (%.02f%% of the total) and %d total_tokens" % [e, 100.0 * e / total_example_count, t]
+      end
+      tmp.join("\n")
+    end
+
+    def each(&block)
+      data.keys.each(&block)
+    end
+
+    # Increment the number of training examples for this category
+    def increment_examples(category)
+      cat_data(category)[:examples] += 1
+    end
+
+    def example_count(category)
+      cat_data(category)[:examples]
+    end
+
+    def token_count(category)
+      cat_data(category)[:total_tokens]
+    end
+
+    # XXX - Add Enumerable and see if I get inject?
+    # Total number of training instances
+    def total_examples
+      sum = 0
+      self.each {|category| sum += example_count(category) }
+      sum
+    end
+
+    # Add this token to this category
+    def add_token_to_category(category, token)
+      cat_data(category)[:tokens][token] += 1
+      cat_data(category)[:total_tokens] += 1
+    end
+
+    # How many times does this token appear in this category?
+    def count_of_token_in_category(category, token)
+      cat_data(category)[:tokens][token]
+    end
+
+    def delete_token_from_category(category, token)
+      count = count_of_token_in_category(category, token)
+      cat_data(category)[:tokens].delete(token)
+      # Update this category's total token count
+      cat_data(category)[:total_tokens] -= count
+    end
+
+    def purge_less_than(token, x)
+      return if token_count_across_categories(token) >= x
+      self.each do |category|
+        delete_token_from_category(category, token)
+      end
+      true  # Let caller know we removed this token
+    end
+
+    # XXX - TODO - use count_of_token_in_category
+    # Return the total number of tokens we've seen across all categories
+    def token_count_across_categories(token)
+      data.keys.inject(0){|sum, cat| sum + @data[cat][:tokens][token] }
+    end
+
+    def reset_after_import
+      self.each {|category| cat_data(category)[:tokens].default = 0 }
+    end
+
+    def new_category
+      {
+        :tokens => Hash.new(0),             # holds freq counts
+        :total_tokens => 0,
+        :examples => 0
+      }
+    end
+
+  end
+
   class Base
 
     attr_accessor :assume_uniform, :debug, :k, :vocab, :data
@@ -60,16 +160,7 @@ module NBayes
       @binarized = options[:binarized] || false
       @assume_uniform = false
       @vocab = Vocab.new(:log_size => options[:log_vocab])
-      @data = Hash.new
-      @data.default_proc = get_default_proc()
-      #@data = {
-      #  "category1": {
-      #    "tokens": Hash.new(0),
-      #    "total_tokens": 0,
-      #    "examples": 0
-      #  },
-      # ...
-      #}
+      @data = Data.new
     end
 
     # Allows removal of low frequency words that increase processing time and may overfit
@@ -81,36 +172,13 @@ module NBayes
     def purge_less_than(x)
       remove_list = {}
       @vocab.each do |token|
-        count = @data.keys.inject(0){|sum, cat| sum + @data[cat][:tokens][token] }
-        next if count >= x
-        @data.each do |cat, cat_data|
-          count = cat_data[:tokens][token]
-          cat_data[:tokens].delete(token)     # delete and retrieve count
-          cat_data[:total_tokens] -= count    # subtract that count from cat counts
-        end  # each category hash
-        # print "removing #{token}\n"
-        remove_list[token]=1
+        if data.purge_less_than(token, x)
+          # print "removing #{token}\n"
+          remove_list[token] = 1
+        end
       end  # each vocab word
       remove_list.keys.each {|token| @vocab.delete(token) }
       # print "total vocab size is now #{vocab.size}\n"
-    end
-
-    # Returns the default proc used by the data hash
-    # Separate method so that it can be used after data import
-    def get_default_proc
-      return lambda do |hash, category|
-        hash[category] = {
-          :tokens => Hash.new(0),             # holds freq counts
-          :total_tokens => 0,
-          :examples => 0
-        }
-      end
-    end
-
-    # called internally after yaml import to reset Hash defaults
-    def reset_after_import
-      @data.default_proc = get_default_proc()
-      @data.each {|cat, cat_hash| cat_hash[:tokens].default = 0 }
     end
 
     def ham(tokens)
@@ -122,13 +190,11 @@ module NBayes
     end
 
     def train(tokens, category)
-      cat_data = @data[category]
-      cat_data[:examples] += 1
       tokens = tokens.uniq if binarized
+      data.increment_examples(category)
       tokens.each do |token|
         vocab.seen_token(token)
-        cat_data[:tokens][token] += 1
-        cat_data[:total_tokens] += 1
+        data.add_token_to_category(category, token)
       end
     end
 
@@ -142,21 +208,8 @@ module NBayes
       probs
     end
 
-    # Total number of training instances
-    def total_examples
-      sum = 0
-      @data.each {|cat, cat_data| sum += cat_data[:examples] }
-      sum
-    end
-
     def category_stats
-      tmp = []
-      data.each do |cat, data|
-        e = data[:examples]
-        t = data[:total_tokens]
-        tmp << "For category #{cat}, %d examples (%.02f%% of the total) and %d total_tokens" % [e, 100.0 * e / total_examples, t]
-      end
-      tmp.join("\n")
+      data.category_stats
     end
 
     # Calculates the actual probability of a class given the tokens
@@ -169,20 +222,19 @@ module NBayes
       prob_numerator = {}
       v_size = vocab.size
 
-      cat_prob = Math.log(1 / @data.count.to_f)
-      example_count = total_examples.to_f
+      cat_prob = Math.log(1 / data.categories.count.to_f)
+      total_example_count = data.total_examples.to_f
 
-      @data.keys.each do |category|
-        cat_data = @data[category]
-
+      data.each do |category|
         unless assume_uniform
-          cat_prob = Math.log(cat_data[:examples] / example_count)
+          cat_prob = Math.log(data.example_count(category) / total_example_count)
         end
 
         log_probs = 0
-        cat_denominator = (cat_data[:total_tokens]+ @k * v_size).to_f
+        denominator = (data.token_count(category) + @k * v_size).to_f
         tokens.each do |token|
-          log_probs += Math.log( (cat_data[:tokens][token] + @k) / cat_denominator )
+          numerator = data.count_of_token_in_category(category, token) + @k
+          log_probs += Math.log( numerator / denominator )
         end
         prob_numerator[category] = log_probs + cat_prob
       end
@@ -209,6 +261,11 @@ module NBayes
         final_probs[cat] = value / renormalizer.to_f
       end
       final_probs
+    end
+
+    # called internally after yaml import to reset Hash defaults
+    def reset_after_import
+      data.reset_after_import
     end
 
     def self.from_yml(yml_data)
@@ -246,7 +303,6 @@ module NBayes
     end
 
   end
-
 
   module Result
     def max_class
