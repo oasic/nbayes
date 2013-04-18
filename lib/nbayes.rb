@@ -181,14 +181,6 @@ module NBayes
       # print "total vocab size is now #{vocab.size}\n"
     end
 
-    def ham(tokens)
-      train(tokens, 'ham')
-    end
-
-    def spam(tokens)
-      train(tokens, 'spam')
-    end
-
     def train(tokens, category)
       tokens = tokens.uniq if binarized
       data.increment_examples(category)
