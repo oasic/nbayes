@@ -82,6 +82,14 @@ describe "NBayes" do
 
   end
 
+  it "should tokenize inputs" do
+    @nbayes.tokenize("Tom went jogging in the park", " ").should ==
+      ["Tom", "went", "jogging", "in", "the", "park"]
+
+    @nbayes.tokenize("Tom went jogging in the park", /\s+/).should ==
+      ["Tom", "went", "jogging", "in", "the", "park"]
+  end
+
   # In binarized mode, the frequency count is set to 1 for each token in each instance
   # For text, this is "set of words" rather than "bag of words"
   it "should allow binarized mode" do

@@ -298,6 +298,10 @@ module NBayes
       end
     end
 
+    def tokenize(input, delimiter)
+      input.split(delimiter)
+    end
+
   end
 
   module Result
