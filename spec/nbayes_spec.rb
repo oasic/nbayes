@@ -159,4 +159,19 @@ describe "NBayes" do
     results = @nbayes.classify( ['b'] )
     results['classB'].should >= 0.5
   end
+
+  it "should delete a category" do
+    @nbayes.train( %w[a a a a], 'classA' )
+    @nbayes.train( %w[b b b b], 'classB' )
+    @nbayes.data.categories.should == ["classA", "classB"]
+    @nbayes.delete_category('classB').should == ["classA"]
+    @nbayes.data.categories.should == ["classA"]
+  end
+
+  it "should do nothing if asked to delete an inexistant category" do
+    @nbayes.train( %w[a a a a], 'classA' )
+    @nbayes.data.categories.should == ["classA"]
+    @nbayes.delete_category('classB').should == ["classA"]
+    @nbayes.data.categories.should == ["classA"]
+  end
 end

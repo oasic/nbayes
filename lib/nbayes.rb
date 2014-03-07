@@ -147,6 +147,11 @@ module NBayes
       }
     end
 
+    def delete_category(category)
+      data.delete(category) if data.has_key?(category)
+      categories
+    end
+
   end
 
   class Base
@@ -179,6 +184,11 @@ module NBayes
       end  # each vocab word
       remove_list.keys.each {|token| @vocab.delete(token) }
       # print "total vocab size is now #{vocab.size}\n"
+    end
+
+    # Delete an entire category from the classification data
+    def delete_category(category)
+      data.delete_category(category)
     end
 
     def train(tokens, category)
