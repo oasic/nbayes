@@ -174,4 +174,30 @@ describe "NBayes" do
     @nbayes.delete_category('classB').should == ["classA"]
     @nbayes.data.categories.should == ["classA"]
   end
+
+  it "should untrain a class" do
+    @nbayes.train( %w[a b c d e f g], 'classA' )
+    @nbayes.train( %w[a b c d e f g], 'classB' )
+    @nbayes.train( %w[a b c d e f g], 'classB' )
+    @nbayes.untrain( %w[a b c d e f g], 'classB' )
+    results = @nbayes.classify( %w[a b c] )
+    results['classA'].should == 0.5
+    results['classB'].should == 0.5
+  end
+
+  it "should remove the category when the only example is untrained" do
+    @nbayes.train( %w[a b c d e f g], 'classA' )
+    @nbayes.untrain( %w[a b c d e f g], 'classA' )
+    @nbayes.data.categories.should == []
+  end
+
+  it 'try untraining a non-existant category' do
+    @nbayes.train( %w[a b c d e f g], 'classA' )
+    @nbayes.train( %w[a b c d e f g], 'classB' )
+    @nbayes.untrain( %w[a b c d e f g], 'classC' )
+    @nbayes.data.categories.should == ['classA', 'classB']
+    results = @nbayes.classify( %w[a b c] )
+    results['classA'].should == 0.5
+    results['classB'].should == 0.5
+  end
 end
