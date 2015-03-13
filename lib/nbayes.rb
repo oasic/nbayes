@@ -60,6 +60,10 @@ module NBayes
       data.keys
     end
 
+    def token_trained?(token, category)
+      data[category] ? data[category][:tokens].has_key?(token) : false
+    end
+
     def cat_data(category)
       unless data[category].is_a? Hash
         data[category] = new_category
@@ -87,6 +91,13 @@ module NBayes
       cat_data(category)[:examples] += 1
     end
 
+    # Decrement the number of training examples for this category.
+    # Delete the category if the examples counter is 0.
+    def decrement_examples(category)
+      cat_data(category)[:examples] -= 1
+      delete_category(category) if cat_data(category)[:examples] < 1
+    end
+
     def example_count(category)
       cat_data(category)[:examples]
     end
@@ -107,6 +118,16 @@ module NBayes
     def add_token_to_category(category, token)
       cat_data(category)[:tokens][token] += 1
       cat_data(category)[:total_tokens] += 1
+    end
+
+    # Decrement the token counter in a category
+    # If the counter is 0, delete the token.
+    # If the total number of tokens is 0, delete the category.
+    def remove_token_from_category(category, token)
+      cat_data(category)[:tokens][token] -= 1
+      delete_token_from_category(category, token) if cat_data(category)[:tokens][token] < 1
+      cat_data(category)[:total_tokens] -= 1
+      delete_category(category) if cat_data(category)[:total_tokens] < 1
     end
 
     # How many times does this token appear in this category?
@@ -147,6 +168,11 @@ module NBayes
       }
     end
 
+    def delete_category(category)
+      data.delete(category) if data.has_key?(category)
+      categories
+    end
+
   end
 
   class Base
@@ -181,12 +207,33 @@ module NBayes
       # print "total vocab size is now #{vocab.size}\n"
     end
 
+    # Delete an entire category from the classification data
+    def delete_category(category)
+      data.delete_category(category)
+    end
+
     def train(tokens, category)
       tokens = tokens.uniq if binarized
       data.increment_examples(category)
       tokens.each do |token|
         vocab.seen_token(token)
         data.add_token_to_category(category, token)
+      end
+    end
+
+    # Be carefull with this function:
+    # * It decrement the number of examples for the category.
+    #   If the being-untrained category has no more examples, it is removed from the category list.
+    # * It untrain already trained tokens, non existing tokens are not considered.
+    def untrain(tokens, category)
+      tokens = tokens.uniq if binarized
+      data.decrement_examples(category)
+      
+      tokens.each do |token|
+        if data.token_trained?(token, category)
+          vocab.delete(token)
+          data.remove_token_from_category(category, token)
+        end
       end
     end
 
