@@ -4,7 +4,7 @@
 gem install nbayes
 ```
 
-NBayes is a full-featured, Ruby implementation of Naive Bayes.  Some of the features include:
+NBayes is a full-featured, Ruby implementation of ``Naive Bayes``.  Some of the features include:
 
 * allows prior distribution on classes to be assumed uniform (optional)
 * generic to work with all types of tokens, not just text

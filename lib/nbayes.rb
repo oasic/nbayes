@@ -8,7 +8,7 @@ require 'yaml'
 # - allows binarized or standard NB
 # - allows Prior distribution on category to be assumed uniform (optional)
 # - generic to work with all types of tokens, not just text
-#
+
 
 module NBayes
 
