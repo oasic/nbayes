@@ -1,4 +1,5 @@
 require 'yaml'
+require_relative 'dbconnection'
 
 # == NBayes::Base
 #
@@ -16,7 +17,7 @@ module NBayes
     attr_accessor :log_size, :tokens
 
     def initialize(options = {})
-      @tokens = Hash.new
+      @tokens = DBConnection.new
       # for smoothing, use log of vocab size, rather than vocab size
       @log_size = options[:log_size]
     end
@@ -65,7 +66,7 @@ module NBayes
     end
 
     def cat_data(category)
-      unless data[category].is_a? Hash
+      unless data[category].is_a? Hash # change to value of DBConnection object
         data[category] = new_category
       end
       data[category]
@@ -228,7 +229,7 @@ module NBayes
     def untrain(tokens, category)
       tokens = tokens.uniq if binarized
       data.decrement_examples(category)
-      
+
       tokens.each do |token|
         if data.token_trained?(token, category)
           vocab.delete(token)
