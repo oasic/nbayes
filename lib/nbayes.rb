@@ -1,8 +1,6 @@
 require 'yaml'
 require_relative 'dbconnection'
 
-require 'pry'
-
 module NBayes
 
   class Vocab
@@ -30,7 +28,7 @@ module NBayes
     end
 
     def seen_token(token, category)
-      tokens.update_frequency(token, 1, category) # Line 210 SETS DEFAULT VALUE TO 1. NOT NEEDED anymore
+      tokens.update_frequency(token, 1, category)
     end
   end
 
@@ -102,22 +100,6 @@ module NBayes
     def delete_token_from_category(category, token)
       data.delete_from_category(category, token)
     end
-
-    # def purge_less_than(token, x)
-    #   return if token_count_across_categories(token) >= x
-    #   self.each do |category|
-    #     remove_token_from_category(category, token)
-    #   end
-    #   true
-    # end
-    #
-    # def token_count_across_categories(token)
-    #   data.keys.inject(0){|sum, cat| sum + @data[cat][:tokens][token] }
-    # end
-    #
-    # def reset_after_import
-    #   self.each {|category| cat_data(category)[:tokens].default = 0 }
-    # end
 
     def new_category
       {
@@ -229,42 +211,6 @@ module NBayes
       end
       final_probs
     end
-
-    # called internally after yaml import to reset Hash defaults
-    # def reset_after_import
-    #   data.reset_after_import
-    # end
-    #
-    # def self.from_yml(yml_data)
-    #   nbayes = YAML.load(yml_data)
-    #   nbayes.reset_after_import()
-    #   nbayes
-    # end
-    #
-    # def self.from(yml_file)
-    #   File.open(yml_file, "rb") do |file|
-    #     self.from_yml(file.read)
-    #   end
-    # end
-    #
-    # def load(yml)
-    #   if yml.nil?
-    #     nbayes = NBayes::Base.new
-    #   elsif yml[0..2] == "---"
-    #     nbayes = self.class.from_yml(yml)
-    #   else
-    #     nbayes = self.class.from(yml)
-    #   end
-    #   nbayes
-    # end
-    #
-    # def dump(arg)
-    #   if arg.instance_of? String
-    #     File.open(arg, "w") {|f| YAML.dump(self, f) }
-    #   else
-    #     YAML.dump(arg)
-    #   end
-    # end
   end
 
   module Result
