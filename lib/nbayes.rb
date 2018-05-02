@@ -100,25 +100,24 @@ module NBayes
     end
 
     def delete_token_from_category(category, token)
-      count = count_of_token_in_category(category, token)
-      cat_data(category)[:tokens].delete(token)
+      data.delete_from_category(category, token)
     end
 
-    def purge_less_than(token, x)
-      return if token_count_across_categories(token) >= x
-      self.each do |category|
-        delete_token_from_category(category, token)
-      end
-      true
-    end
-
-    def token_count_across_categories(token)
-      data.keys.inject(0){|sum, cat| sum + @data[cat][:tokens][token] }
-    end
-
-    def reset_after_import
-      self.each {|category| cat_data(category)[:tokens].default = 0 }
-    end
+    # def purge_less_than(token, x)
+    #   return if token_count_across_categories(token) >= x
+    #   self.each do |category|
+    #     remove_token_from_category(category, token)
+    #   end
+    #   true
+    # end
+    #
+    # def token_count_across_categories(token)
+    #   data.keys.inject(0){|sum, cat| sum + @data[cat][:tokens][token] }
+    # end
+    #
+    # def reset_after_import
+    #   self.each {|category| cat_data(category)[:tokens].default = 0 }
+    # end
 
     def new_category
       {
@@ -181,11 +180,9 @@ module NBayes
     end
 
     def classify(tokens)
-      print "classify: #{tokens.join(', ')}\n" if @debug
       probs = {}
       tokens = tokens.uniq if binarized
       probs = calculate_probabilities(tokens)
-      print "results: #{probs.to_yaml}\n" if @debug
       probs.extend(NBayes::Result)
       probs
     end
@@ -195,10 +192,6 @@ module NBayes
     end
 
     def calculate_probabilities(tokens)
-      # P(class|words) = P(w1,...,wn|class) * P(class) / P(w1,...,wn)
-      #                = argmax P(w1,...,wn|class) * P(class)
-      #
-      # P(wi|class) = (count(wi, class) + k)/(count(w,class) + kV)
       prob_numerator = {}
       v_size = vocab.size
 
@@ -222,24 +215,14 @@ module NBayes
     end
 
     def normalize(prob_numerator)
-      # calculate the denominator, which normalizes this into a probability; it's just the sum of all numerators from above
       normalizer = 0
       prob_numerator.each {|cat, numerator| normalizer += numerator }
-      # One more caveat:
-      # We're using log probabilities, so the numbers are negative and the smallest negative number is actually the largest prob.
-      # To convert, we need to maintain the relative distance between all of the probabilities:
-      # - divide log prob by normalizer: this keeps ratios the same, but reverses the ordering
-      # - re-normalize based off new counts
-      # - final calculation
-      # Ex: -1,-1,-2  =>  -4/-1, -4/-1, -4/-2
-      #   - renormalize and calculate => 4/10, 4/10, 2/10
       intermed = {}
       renormalizer = 0
       prob_numerator.each do |cat, numerator|
         intermed[cat] = normalizer / numerator.to_f
         renormalizer += intermed[cat]
       end
-      # calculate final probs
       final_probs = {}
       intermed.each do |cat, value|
         final_probs[cat] = value / renormalizer.to_f
@@ -248,40 +231,40 @@ module NBayes
     end
 
     # called internally after yaml import to reset Hash defaults
-    def reset_after_import
-      data.reset_after_import
-    end
-
-    def self.from_yml(yml_data)
-      nbayes = YAML.load(yml_data)
-      nbayes.reset_after_import()
-      nbayes
-    end
-
-    def self.from(yml_file)
-      File.open(yml_file, "rb") do |file|
-        self.from_yml(file.read)
-      end
-    end
-
-    def load(yml)
-      if yml.nil?
-        nbayes = NBayes::Base.new
-      elsif yml[0..2] == "---"
-        nbayes = self.class.from_yml(yml)
-      else
-        nbayes = self.class.from(yml)
-      end
-      nbayes
-    end
-
-    def dump(arg)
-      if arg.instance_of? String
-        File.open(arg, "w") {|f| YAML.dump(self, f) }
-      else
-        YAML.dump(arg)
-      end
-    end
+    # def reset_after_import
+    #   data.reset_after_import
+    # end
+    #
+    # def self.from_yml(yml_data)
+    #   nbayes = YAML.load(yml_data)
+    #   nbayes.reset_after_import()
+    #   nbayes
+    # end
+    #
+    # def self.from(yml_file)
+    #   File.open(yml_file, "rb") do |file|
+    #     self.from_yml(file.read)
+    #   end
+    # end
+    #
+    # def load(yml)
+    #   if yml.nil?
+    #     nbayes = NBayes::Base.new
+    #   elsif yml[0..2] == "---"
+    #     nbayes = self.class.from_yml(yml)
+    #   else
+    #     nbayes = self.class.from(yml)
+    #   end
+    #   nbayes
+    # end
+    #
+    # def dump(arg)
+    #   if arg.instance_of? String
+    #     File.open(arg, "w") {|f| YAML.dump(self, f) }
+    #   else
+    #     YAML.dump(arg)
+    #   end
+    # end
   end
 
   module Result
