@@ -11,7 +11,7 @@ class DBConnection
     WITH upsert AS
     (UPDATE tokens SET frequency = frequency + 1 WHERE phrase = $2 RETURNING *)
     INSERT INTO tokens (phrase, frequency, category_id)
-    SELECT $2, 1, (SELECT id FROM category WHERE name = $1)
+    SELECT $2, 1, (SELECT id FROM categories WHERE name = $1)
     WHERE NOT EXISTS (SELECT * FROM upsert);
     SQL
     connect.exec_params(sql, [category, token])
@@ -21,7 +21,7 @@ class DBConnection
     sql = <<~SQL
     UPDATE tokens SET frequency = frequency - 1
     WHERE phrase = $2
-    AND category_id = (SELECT id FROM category WHERE name = $1);
+    AND category_id = (SELECT id FROM categories WHERE name = $1);
     SQL
     connect.exec_params(sql, [category, token])
   end
@@ -29,7 +29,7 @@ class DBConnection
   def delete_from_category(category, token)
     sql = <<~SQL
     DELETE FROM tokens WHERE phrase = $2
-    AND category_id = (SELECT id FROM category WHERE name = $1);
+    AND category_id = (SELECT id FROM categories WHERE name = $1);
     SQL
     connect.exec_params(sql, [category, token])
   end
@@ -52,7 +52,7 @@ class DBToken < DBConnection
   def update_frequency(phrase, frequency, category)
     sql = <<~SQL
     UPDATE tokens SET frequency = $2 WHERE phrase = $1
-    AND category_id = (SELECT id FROM category WHERE name = $3);
+    AND category_id = (SELECT id FROM categories WHERE name = $3);
     SQL
     result = connect.exec_params(sql, [phrase, frequency, category])
   end
@@ -68,8 +68,8 @@ class DBData < DBConnection
     sql = <<~SQL
     SELECT sum(frequency) AS total_tokens, count(phrase) AS examples
     FROM tokens
-    JOIN category ON category.id = category_id
-    WHERE category.name = $1;
+    JOIN categories ON category.id = category_id
+    WHERE categories.name = $1;
     SQL
     result = connect.exec_params(sql, [category_name])
     total_tokens = result.values[0][0].to_i
@@ -83,7 +83,7 @@ class DBData < DBConnection
     sql = <<~SQL
     SELECT phrase, frequency
     FROM tokens
-    WHERE category_id = (SELECT id FROM category WHERE name = $1);
+    WHERE category_id = (SELECT id FROM categories WHERE name = $1);
     SQL
     token_hash = Hash.new
     result = connect.exec_params(sql, [category])
@@ -94,13 +94,13 @@ class DBData < DBConnection
   end
 
   def keys
-    sql = "SELECT name FROM category;"
+    sql = "SELECT name FROM categories;"
     result = connect.exec(sql)
     result.field_values('name')
   end
 
   def has_key?(value)
-    sql = "SELECT name FROM category WHERE name = $1;"
+    sql = "SELECT name FROM categories WHERE name = $1;"
     result = connect.exec_params(sql, [value])
     !result.values.empty?
   end
@@ -108,11 +108,11 @@ class DBData < DBConnection
   def delete(category)
     tokens_sql = <<~SQL
     DELETE FROM tokens
-    WHERE category_id = (SELECT id FROM category WHERE name = $1);
+    WHERE category_id = (SELECT id FROM categories WHERE name = $1);
     SQL
     connect.exec_params(tokens_sql, [category])
 
-    category_sql = "DELETE FROM category WHERE name = $1;"
+    category_sql = "DELETE FROM categories WHERE name = $1;"
     connect.exec_params(category_sql, [category])
   end
 end
