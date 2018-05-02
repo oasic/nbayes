@@ -2,7 +2,6 @@ require 'yaml'
 require_relative 'dbconnection'
 
 module NBayes
-
   class Vocab
     attr_accessor :log_size, :tokens
 
@@ -34,6 +33,7 @@ module NBayes
 
   class Data
     attr_accessor :data
+
     def initialize(options = {})
       @data = DBData.new
     end
@@ -117,7 +117,6 @@ module NBayes
   end
 
   class Base
-
     attr_accessor :assume_uniform, :debug, :k, :vocab, :data
     attr_reader :binarized
 

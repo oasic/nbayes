@@ -1,7 +1,5 @@
 require 'pg'
 
-require 'pry'
-
 class DBConnection
   attr_accessor :connect
   def initialize
