@@ -68,7 +68,7 @@ class DBData < DBConnection
     sql = <<~SQL
     SELECT sum(frequency) AS total_tokens, count(phrase) AS examples
     FROM tokens
-    JOIN categories ON category.id = category_id
+    JOIN categories ON categories.id = category_id
     WHERE categories.name = $1;
     SQL
     result = connect.exec_params(sql, [category_name])
