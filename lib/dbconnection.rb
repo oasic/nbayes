@@ -23,7 +23,15 @@ class DBConnection
     sql = <<~SQL
     UPDATE tokens SET frequency = frequency - 1
     WHERE phrase = $2
-    AND caategory_id = (SELECT id FROM category WHERE name = $1);
+    AND category_id = (SELECT id FROM category WHERE name = $1);
+    SQL
+    connect.exec_params(sql, [category, token])
+  end
+
+  def delete_from_category(category, token)
+    sql = <<~SQL
+    DELETE FROM tokens WHERE phrase = $2
+    AND category_id = (SELECT id FROM category WHERE name = $1);
     SQL
     connect.exec_params(sql, [category, token])
   end
