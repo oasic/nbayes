@@ -3,7 +3,7 @@ require 'pg'
 class DBConnection
   attr_accessor :connect
   def initialize
-    @connect = PG.connect(dbname: 'text_analyzer_dev')
+    @connect = PG.connect(dbname: 'text_analyzer')
   end
 
   def upsert(category, token)
