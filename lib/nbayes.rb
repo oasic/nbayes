@@ -5,8 +5,8 @@ module NBayes
   class Vocab
     attr_accessor :log_size, :tokens
 
-    def initialize(options = {})
-      @tokens = DBToken.new
+    def initialize(db_name, options = {})
+      @tokens = DBToken.new(db_name)
       @log_size = options[:log_size]
     end
 
@@ -34,8 +34,8 @@ module NBayes
   class Data
     attr_accessor :data
 
-    def initialize(options = {})
-      @data = DBData.new
+    def initialize(dbnane, options = {})
+      @data = DBData.new(db_name)
     end
 
     def categories
@@ -120,13 +120,13 @@ module NBayes
     attr_accessor :assume_uniform, :debug, :k, :vocab, :data
     attr_reader :binarized
 
-    def initialize(options={})
+    def initialize(db_name, options={})
       @debug = false
       @k = 1
       @binarized = options[:binarized] || false
       @assume_uniform = false
-      @vocab = Vocab.new(:log_size => options[:log_vocab])
-      @data = Data.new
+      @vocab = Vocab.new(db_name, :log_size => options[:log_vocab])
+      @data = Data.new(db_name)
     end
 
     def purge_less_than(x)
