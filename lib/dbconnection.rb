@@ -9,7 +9,9 @@ class DBConnection
   def upsert(category, token)
     sql = <<~SQL
     WITH upsert AS
-    (UPDATE tokens SET frequency = frequency + 1 WHERE phrase = $2 RETURNING *)
+    (UPDATE tokens SET frequency = frequency + 1 WHERE phrase = $2 AND
+    category_id = (SELECT id FROM categories WHERE name = $1)
+    RETURNING *)
     INSERT INTO tokens (phrase, frequency, category_id)
     SELECT $2, 1, (SELECT id FROM categories WHERE name = $1)
     WHERE NOT EXISTS (SELECT * FROM upsert);
