@@ -45,7 +45,7 @@ class DBToken < DBConnection
   end
 
   def count
-    sql = "SELECT count(phrase) FROM tokens;"
+    sql = "SELECT count(DISTINCT phrase) FROM tokens;"
     result = connect.exec(sql)
     result.values.first.first.to_i
   end
