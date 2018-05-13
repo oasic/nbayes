@@ -34,7 +34,7 @@ module NBayes
   class Data
     attr_accessor :data
 
-    def initialize(dbnane, options = {})
+    def initialize(db_nane, options = {})
       @data = DBData.new(db_name)
     end
 
