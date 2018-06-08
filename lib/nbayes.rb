@@ -1,4 +1,3 @@
-require 'yaml'
 require_relative 'dbconnection'
 
 module NBayes
@@ -124,7 +123,7 @@ module NBayes
       @debug = false
       @k = 1
       @binarized = options[:binarized] || false
-      @assume_uniform = false
+      @assume_uniform = options[:assume_uniform] || false # Added to verify computation for unknown items.
       @vocab = Vocab.new(db_name, :log_size => options[:log_vocab])
       @data = Data.new(db_name)
     end
@@ -173,8 +172,10 @@ module NBayes
     end
 
     def calculate_probabilities(tokens)
+      calculation_data = data.data.calculate_probability_data
+
       prob_numerator = {}
-      v_size = vocab.size
+      v_size = calculation_data.field_values('vocab_count')#vocab.size
 
       cat_prob = Math.log(1 / data.categories.count.to_f)
       total_example_count = data.total_examples.to_f
@@ -186,8 +187,8 @@ module NBayes
 
         log_probs = 0
         denominator = (data.token_count(category) + @k * v_size).to_f
-        tokens.each do |token|
-          numerator = data.count_of_token_in_category(category, token) + @k
+        tokens.each do |token| # phrases to classify
+          numerator = data.count_of_token_in_category(category, token) + @k # make a hash of each category with the phrases & frequency to be able to be iterated through
           log_probs += Math.log( numerator / denominator )
         end
         prob_numerator[category] = log_probs + cat_prob

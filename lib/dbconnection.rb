@@ -6,6 +6,12 @@ class DBConnection
     @connect = PG.connect(dbname: db_name)
   end
 
+  def calculate_probability_data
+    require 'pry'; binding.pry;
+
+    # Run full total query, tack on array of category names at the end?
+  end
+
   def upsert(category, token)
     sql = <<~SQL
     WITH upsert AS
