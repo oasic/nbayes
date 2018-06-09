@@ -130,7 +130,6 @@ module NBayes
       @debug = false
       @k = 1
       @binarized = options[:binarized] || false
-      require 'pry'; binding.pry;
       @assume_uniform = options[:assume_uniform] || false # Added to verify computation for unknown items.
       @vocab = Vocab.new(db_name, :log_size => options[:log_vocab])
       @data = Data.new(db_name)
