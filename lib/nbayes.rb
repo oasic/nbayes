@@ -45,6 +45,10 @@ module NBayes
       data[category] ? data[category][:tokens].has_key?(token) : false
     end
 
+    def category_data(category)
+      data[category]
+    end
+
     def cat_data(category)
       unless data[category].is_a? Hash
         data[category] = new_category
@@ -113,6 +117,9 @@ module NBayes
       categories
     end
 
+    def calculation_data
+      data.calculate_probability_data
+    end
   end
 
   class Base
@@ -123,6 +130,7 @@ module NBayes
       @debug = false
       @k = 1
       @binarized = options[:binarized] || false
+      require 'pry'; binding.pry;
       @assume_uniform = options[:assume_uniform] || false # Added to verify computation for unknown items.
       @vocab = Vocab.new(db_name, :log_size => options[:log_vocab])
       @data = Data.new(db_name)
@@ -172,23 +180,24 @@ module NBayes
     end
 
     def calculate_probabilities(tokens)
-      calculation_data = data.data.calculate_probability_data
+      category_count, vocab_count, total_example_count = data.calculation_data
+      categories = data.categories
 
       prob_numerator = {}
-      v_size = calculation_data.field_values('vocab_count')#vocab.size
+      cat_prob = Math.log(1 / category_count)
 
-      cat_prob = Math.log(1 / data.categories.count.to_f)
-      total_example_count = data.total_examples.to_f
-
-      data.each do |category|
+      categories.each do |category|
+        category_data = data.category_data(category)
         unless assume_uniform
-          cat_prob = Math.log(data.example_count(category) / total_example_count)
+          cat_prob = Math.log(category_data[:examples] / total_example_count)
         end
 
         log_probs = 0
-        denominator = (data.token_count(category) + @k * v_size).to_f
-        tokens.each do |token| # phrases to classify
-          numerator = data.count_of_token_in_category(category, token) + @k # make a hash of each category with the phrases & frequency to be able to be iterated through
+        denominator = (category_data[:total_tokens] + @k * vocab_count).to_f
+        tokens.each do |token|
+          count = category_data[:tokens][token]
+          count = 0 if count.nil?
+          numerator = count + @k
           log_probs += Math.log( numerator / denominator )
         end
         prob_numerator[category] = log_probs + cat_prob
