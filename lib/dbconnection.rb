@@ -7,9 +7,13 @@ class DBConnection
   end
 
   def calculate_probability_data
-    require 'pry'; binding.pry;
-
-    # Run full total query, tack on array of category names at the end?
+    sql = <<~SQL
+    SELECT count(DISTINCT categories.id) AS category_count,
+    count(DISTINCT tokens.phrase) AS token_count,
+    count(tokens.phrase) AS total_example_count
+    FROM categories JOIN tokens on tokens.category_id = categories.id;
+    SQL
+    connect.exec(sql).values[0].map { |num| num.to_f }
   end
 
   def upsert(category, token)
