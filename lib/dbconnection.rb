@@ -15,10 +15,11 @@ class DBConnection
 
   def calculate_probability_data
     sql = <<~SQL
-    SELECT count(DISTINCT categories.id) AS category_count,
-    count(DISTINCT tokens.phrase) AS token_count,
-    count(tokens.phrase) AS total_example_count
-    FROM categories JOIN tokens on tokens.category_id = categories.id;
+    SELECT
+    (SELECT value FROM token_stats WHERE name = 'category_count') AS category_count,
+    (SELECT value FROM token_stats WHERE name = 'distinct_token_count') AS token_count,
+    (SELECT value FROM token_stats WHERE name = 'total_token_count') AS total_example_count
+    FROM token_stats LIMIT 1;
     SQL
     result = ''
     connect do |connection|
@@ -67,7 +68,7 @@ class DBToken < DBConnection
   end
 
   def count
-    sql = "SELECT count(DISTINCT phrase) FROM tokens;"
+    sql = "SELECT value FROM token_stats WHERE name = 'distinct_token_count';"
     result = ''
     connect { |connection| result = connection.exec(sql) }
     result.values.first.first.to_i
@@ -93,10 +94,10 @@ end
 class DBData < DBConnection
   def [](category_name)
     sql = <<~SQL
-    SELECT sum(frequency) AS total_tokens, count(phrase) AS examples
-    FROM tokens
-    JOIN categories ON categories.id = category_id
-    WHERE categories.name = $1;
+    SELECT
+    (SELECT value FROM token_stats WHERE name = 'token_frequency_count' AND category_id = (SELECT id FROM categories WHERE name = $1)) AS total_tokens,
+    (SELECT value FROM token_stats WHERE name = 'token_count' AND category_id = (SELECT id FROM categories WHERE name = $1)) AS examples
+    FROM token_stats LIMIT 1;
     SQL
     result = ''
     connect do |connection|
