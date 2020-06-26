@@ -28,11 +28,10 @@ For more information, view this blog post: http://blog.oasic.net/2012/06/naive-b
 
 ## Acknowledgements
 
-This project was supported by PaperRater's [grammar checker](http://www.PaperRater.com/) and automated proofreader. 
+This project is supported by the GrammarBot [grammar checker](http://www.GrammarBot.io/)
 
-[![free grammar checker](http://www.PaperRater.com/images/paper-rater-logo_303x58.jpg)](http://www.PaperRater.com/)
 
 ## Copyright
 
-Copyright (c) 2012-2016 Oasic Technologies LLC. See LICENSE.txt for further details.
+Copyright (c) 2012-2020 Oasic Technologies LLC. See LICENSE.txt for further details.
 

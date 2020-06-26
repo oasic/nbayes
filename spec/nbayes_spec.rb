@@ -106,9 +106,6 @@ describe NBayes do
     end
   end
 
-  xit 'should allow log of vocab size in smoothing' do
-  end
-
   # In binarized mode, the frequency count is set to 1 for each token in each instance
   # For text, this is "set of words" rather than "bag of words"
   it 'should allow binarized mode' do
@@ -149,7 +146,7 @@ describe NBayes do
     expect(prob_k1).to be > prob_k5 # increasing smoothing constant dampens the effect of the rare token 'c'
   end
 
-  xit 'optionally allows using the log of vocab size during smoothing' do
+  it 'optionally allows using the log of vocab size during smoothing' do
     10_000.times do
       nbayes.train([rand(100)], 'classA')
       nbayes.train(%w(b b b d), 'classB')
