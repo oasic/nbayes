@@ -33,5 +33,5 @@ This project is supported by the GrammarBot [grammar checker](http://www.Grammar
 
 ## Copyright
 
-Copyright (c) 2012-2020 Oasic Technologies LLC. See LICENSE.txt for further details.
+Copyright (c) 2012-2021 Oasic Technologies LLC. See LICENSE.txt for further details.
 
