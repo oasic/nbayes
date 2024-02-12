@@ -312,7 +312,7 @@ module NBayes
     end
 
     def self.from_yml(yml_data)
-      nbayes = YAML.load(yml_data)
+      nbayes = YAML.load(yml_data, permitted_classes: [NBayes::Base, NBayes::Vocab, NBayes::Data, Symbol])
       nbayes.reset_after_import()  # yaml does not properly set the defaults on the Hashes
       nbayes
     end
